@@ -1,0 +1,25 @@
+---
+const menuItems = [
+  { icon: 'LayoutDashboard', label: 'Inicio', active: true },
+  { icon: 'Users', label: 'Clientes', active: false },
+  { icon: 'Package', label: 'Motorizados', active: false },
+];
+---
+
+<aside class="h-screen w-full md:w-64 bg-white border-r border-slate-200/50 z-50 flex flex-col">
+  <div class="p-4 flex md:flex-col items-center gap-5">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xl">L</div>
+      <span class="text-2xl font-black text-slate-900 tracking-tighter">Visor</span>
+    </div>
+
+    <nav class="space-y-2 flex md:flex-col gap-5">
+      {menuItems.map((Item) => (
+        <a href="#" class="w-full flex items-center gap-3 px-1 py-2 rounded-xl text-sm font-bold transition-all text-slate-600 hover:bg-slate-50">
+          <Item.icon />
+          {Item.label}
+        </a>
+      ))}
+    </nav>
+  </div>
+</aside>

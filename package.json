@@ -12,6 +12,17 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.1.1"
+    "@astrojs/react": "^5.0.2",
+    "@react-pdf/renderer": "^4.3.2",
+    "@tailwindcss/vite": "^4.2.2",
+    "@tremor/react": "^3.18.7",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "astro": "^6.1.1",
+    "date-fns": "^4.1.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tailwindcss": "^4.2.2",
+    "xlsx": "^0.18.5"
   }
 }

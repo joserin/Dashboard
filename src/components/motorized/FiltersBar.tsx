@@ -1,0 +1,63 @@
+import React from 'react';
+
+interface FiltersBarProps {
+  clients: string[];
+  selectedClient: string;
+  onClientChange: (client: string) => void;
+  dateRange: { start: string; end: string };
+  onDateRangeChange: (range: { start: string; end: string }) => void;
+  onRefresh?: () => void;
+}
+
+export const FiltersBar: React.FC<FiltersBarProps> = ({
+  clients,
+  selectedClient,
+  onClientChange,
+  dateRange,
+  onDateRangeChange,
+  onRefresh = () => {},
+}) => {
+  return (
+    <div className="glass-panel p-2 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4 cloud-shadow 
+        border-b-2 border-outline-variant/10 ">
+        <section className="flex items-center gap-3">
+            <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider ml-1">Cliente</label>
+            <select 
+                value={selectedClient}
+                onChange={(e) => onClientChange(e.target.value)}
+                className="border rounded-lg text-sm font-medium py-2 px-4 pr-10 focus:ring-primary cursor-pointer"
+                >
+                {clients.map(client => (
+                    <option key={client} value={client}>{client}</option>
+                ))}
+            </select>
+        </section>
+
+        <section className="flex flex-col md:flex-row items-center gap-1">
+            <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Periodo</label>
+            <div className="flex items-center  rounded-lg px-3 gap-5">
+                <input 
+                    type="date" 
+                    value={dateRange.start}
+                    onChange={(e) => onDateRangeChange({ ...dateRange, start: e.target.value })}
+                    className="bg-transparent border text-sm py-2 focus:ring-0 cursor-pointer"
+                />
+                <span className="text-slate-400">→</span>
+                <input 
+                    type="date" 
+                    value={dateRange.end}
+                    onChange={(e) => onDateRangeChange({ ...dateRange, end: e.target.value })}
+                    className="bg-transparent border text-sm py-2 focus:ring-0 cursor-pointer"
+                />
+            </div>
+        </section>
+
+        <button 
+            onClick={onRefresh}
+            className="bg-primary rounded-lg font-bold text-sm text-center flex items-center gap-2 hover:opacity-90 transition-opacity active:scale-95"
+        >
+            Actualizar
+        </button>
+    </div>
+  );
+};
