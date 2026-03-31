@@ -19,7 +19,7 @@ export function useExcelParser() {
         try {
           const data = new Uint8Array(e.target?.result as ArrayBuffer);
           const workbook = XLSX.read(data, { type: 'array' });
-          const targetSheetName = "delivery";
+          const targetSheetName = "moto";
           const worksheet = workbook.Sheets[targetSheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
 
