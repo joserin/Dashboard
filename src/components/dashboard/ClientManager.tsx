@@ -59,14 +59,16 @@ export default function ClientManager() {
     // Agrupamos por fecha
     const groups = filteredData.reduce((acc: any, item) => {
       // Formateamos la fecha para que se vea bien en la gráfica (ej: "15 Oct")
-      const dateLabel = new Date(item.fecha).toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: 'short',
-      });
+      const rawDate = item.fecha; 
 
-      if (!acc[dateLabel]) {
-        acc[dateLabel] = { 
-          date: dateLabel, 
+      if (!acc[rawDate]) {
+        acc[rawDate] = { 
+          date: rawDate, // Guardamos la fecha real
+          // Creamos el label bonito solo para la vista
+          displayDate: new Date(item.fecha).toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: 'short',
+          }),
           Completas: 0, 
           Pendientes: 0, 
           Cancelados: 0, 
@@ -78,31 +80,35 @@ export default function ClientManager() {
       }
 
       // Sumamos según el estado
-      if (item.status === 'Completado') acc[dateLabel].Completas++;
-      else if (item.status === 'Pendiente') acc[dateLabel].Pendientes++;
-      else if (item.status === 'Cancelado') acc[dateLabel].Cancelados++;
+      if (item.status === 'Completado') acc[rawDate].Completas++;
+      else if (item.status === 'Pendiente') acc[rawDate].Pendientes++;
+      else if (item.status === 'Cancelado') acc[rawDate].Cancelados++;
 
-      acc[dateLabel].Monto += item.montoTotal;
+      acc[rawDate].Monto += item.montoTotal;
 
       // Lógica de tiempos
       const retiroMins = timeToMinutes(item.tiempoRetiro);
       const entregaMins = timeToMinutes(item.tiempoEntrega);
       
       if (retiroMins > 0) {
-        acc[dateLabel].totalRetiroMins += retiroMins;
-        acc[dateLabel].totalEntregaMins += entregaMins;
-        acc[dateLabel].countTiempos++;
+        acc[rawDate].totalRetiroMins += retiroMins;
+        acc[rawDate].totalEntregaMins += entregaMins;
+        acc[rawDate].countTiempos++;
       }
 
       return acc;
     }, {});
 
-    // Convertimos el objeto en un array y lo ordenamos por fecha si es necesario
-    return Object.values(groups).map((g: any) => ({
+    const sortedArray = Object.values(groups).sort((a: any, b: any) => {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+
+    return sortedArray.map((g: any) => ({
       ...g,
-      // Calculamos el promedio. Si no hay datos, ponemos 0.
-      'Prom. Retiro': g.countTiempos > 0 ? Math.round(g.totalRetiroMins / g.countTiempos) : 0,
-      'Prom. Entrega': g.countTiempos > 0 ? Math.round(g.totalEntregaMins / g.countTiempos) : 0,
+      fullDate: g.date, 
+      Tiempo: g.countTiempos > 0 ? Math.round((g.totalEntregaMins - g.totalRetiroMins) / g.countTiempos) : 0,
+      Retiro: g.countTiempos > 0 ? Math.round(g.totalRetiroMins / g.countTiempos) : 0,
+      Entrega: g.countTiempos > 0 ? Math.round(g.totalEntregaMins / g.countTiempos) : 0,
     }));
   }, [filteredData]);
 

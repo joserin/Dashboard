@@ -1,5 +1,6 @@
 import React from 'react';
 import { AreaChart, BarChart, LineChart, Card, Title, Text, Flex, Badge } from '@tremor/react';
+import MiCuadroPersonalizado from '../Tooltip';
 
 interface TimeChartsProps {
   data: any[]; // El array procesado que creamos arriba
@@ -18,7 +19,7 @@ const timeFormatter = (number: number) => {
 };
 
 export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
-    console.log('Datos para gráficos:', data); // Debug: Ver los datos que llegan a los gráficos
+  
     if (data.length === 0) {
         return (
             <Card className="h-80 flex items-center justify-center border-dashed border-2 border-slate-200 shadow-none bg-slate-50/50">
@@ -27,7 +28,42 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
         );
     }
 
+    const durationFormatter = (number: number) => {
+        if (number === 0) return '0 min';
+        const hours = Math.floor(number / 60);
+        const minutes = number % 60;
+        return hours > 0 ? `${hours}:${minutes} m` : `${minutes} m`;
+    };
+
+    // Para la gráfica de RELOJ (Hora exacta: 23:30)
+    const clockFormatter = (number: number) => {
+        if (number === 0) return '0';
+        const hours = Math.floor(number / 60) % 24; // Asegura que no pase de 24
+        const minutes = number % 60;
+        // Agrega el 0 a la izquierda si es necesario (ej: 09:05)
+        const hStr = hours.toString().padStart(2, '0');
+        const mStr = minutes.toString().padStart(2, '0');
+        return `${hStr}:${mStr}`;
+    };
+
   return (
+    <div id="charts-report-container">
+        <style dangerouslySetInnerHTML={{ __html: `
+            /* 2. GRÁFICA DE LÍNEAS: EFICIENCIA */
+            /* Línea de Retiro (Indigo) */
+            .recharts-line-curve[name="Retiro"],
+            .recharts-line-curve[name="Prom. Retiro"] {
+            stroke: #6366f1 !important;
+            stroke-width: 3px;
+            }
+            /* Línea de Entrega (Rose) */
+            .recharts-line-curve[name="Entrega"],
+            .recharts-line-curve[name="Prom. Entrega"] {
+            stroke: #f43f5e !important;
+            stroke-width: 3px;
+            }
+        `}} />
+    
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Gráfico Principal con Tremor */}
         <Card className="ring-1 ring-slate-200 shadow-sm">
@@ -42,7 +78,7 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
             <AreaChart
                 className="h-72 mt-4"
                 data={data}
-                index="date"
+                index="displayDate"
                 categories={['Completas', 'Pendientes']}
                 colors={['orange', 'blue']}
                 valueFormatter={valueFormatter}
@@ -50,6 +86,8 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
                 showGridLines={true}
                 curveType="monotone"
                 allowDecimals={false}
+                startEndOnly={true}
+                customTooltip={MiCuadroPersonalizado}
             />
         </Card>
         {/* Gráfico 2: Montos Económicos */}
@@ -65,14 +103,41 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
             <BarChart
                 className="h-72 mt-4"
                 data={data}
-                index="date"
+                index="displayDate"
                 categories={['Monto']} // Necesitas asegurarte que el useMemo del Manager envíe este campo
                 colors={['emerald']}
                 valueFormatter={currencyFormatter}
                 showLegend={false}
-                allowDecimals={true} 
+                allowDecimals={true}
+                customTooltip={MiCuadroPersonalizado}
             />
         </Card>
+
+        {/* Rendimiento por Usuario */}
+        <Card className="ring-1 ring-slate-200 shadow-sm">
+            <div className="mb-4">
+                <Flex justifyContent="between" alignItems="center">
+                    <div>
+                        <Title className="text-slate-900 font-bold">Rendimiento por Usuario</Title>
+                        <Text className="text-slate-500 text-xs text-left">Tiempo promedio de entrega (Desde Retiro hasta Destino)</Text>
+                    </div>
+                    <Badge color="amber">Horas</Badge>
+                </Flex>
+            </div>
+            
+            <BarChart
+                className="h-72 mt-4"
+                data={data}
+                index="displayDate"
+                categories={['Tiempo']} // Este es el promedio de duración
+                colors={['orange']}
+                valueFormatter={durationFormatter}
+                showLegend={true}
+                yAxisWidth={60}
+                customTooltip={MiCuadroPersonalizado}
+            />
+        </Card>
+
         {/* Fila Inferior: Tiempos (Ocupa todo el ancho) */}
         <Card className="ring-1 ring-slate-200 shadow-sm">
             <div className="mb-4">
@@ -83,16 +148,22 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
                 <Text className="text-slate-500 text-xs text-left">Hora promedio en la que se realizan los procesos</Text>
             </div>
             <LineChart
-                className="h-80 mt-4"
+                className="h-72 mt-4"
                 data={data}
-                index="date"
-                categories={['Prom. Retiro', 'Prom. Entrega']}
-                colors={['indigo', 'rose']}
-                valueFormatter={timeFormatter}
+                index="displayDate"
+                categories={['Retiro', 'Entrega']}
+                colors={['indigo', 'rose', 'amber']}
+                valueFormatter={clockFormatter}
                 showLegend={true}
                 curveType="monotone"
+                yAxisWidth={60}
+                startEndOnly={true}
+                customTooltip={MiCuadroPersonalizado}
             />
         </Card>
+
+    </div>
+    
     </div>
   );
 };

@@ -29,6 +29,9 @@ dependencies:
   date-fns:
     specifier: ^4.1.0
     version: 4.1.0
+  modern-screenshot:
+    specifier: ^4.6.8
+    version: 4.6.8
   react:
     specifier: ^19.2.4
     version: 19.2.4
@@ -3254,6 +3257,10 @@ packages:
       micromark-util-types: 2.0.2
     transitivePeerDependencies:
       - supports-color
+    dev: false
+
+  /modern-screenshot@4.6.8:
+    resolution: {integrity: sha512-GJkv/yWPOJTlxj1LZDU2k474cDyOWL+LVaqTdDWQwQ5d8zIuTz1892+1cV9V0ZpK6HYZFo/+BNLBbierO9d2TA==}
     dev: false
 
   /mrmime@2.0.1:

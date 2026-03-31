@@ -4,7 +4,7 @@ interface StatsGridProps {
   stats: DashboardStatsMoto;
 }
 
-export function StatsGrid({ stats }: StatsGridProps) {
+export function StatsGridMoto({ stats }: StatsGridProps) {
 
   const cards = [
     {

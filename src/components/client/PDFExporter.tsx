@@ -1,12 +1,28 @@
-import React from 'react';
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Image, Font } from '@react-pdf/renderer';
+import React, { useState } from 'react';
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Image } from '@react-pdf/renderer';
 import type { DashboardStats, DeliveryData } from '../../env';
+import { domToPng } from 'modern-screenshot';
 
 const styles = StyleSheet.create({
   page: {
     padding: 40,
     backgroundColor: '#ffffff',
     fontFamily: 'Helvetica',
+  },
+  sectionTitle: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    marginTop: 20, 
+    marginBottom: 10, 
+    color: '#1e293b' 
+  },
+  chartImage: {
+    width: '100%',
+    height: 'auto',
+    marginVertical: 15,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8
   },
   header: {
     flexDirection: 'row',
@@ -97,15 +113,16 @@ interface PDFDocumentProps {
   stats: DashboardStats;
   clientName: string;
   dateRange: { start: string; end: string };
+  chartImage: string | null;
 }
 
-const MyPDFDocument: React.FC<PDFDocumentProps> = ({ data, stats, clientName, dateRange }) => (
+const MyPDFDocument: React.FC<PDFDocumentProps> = ({ data, stats, clientName, dateRange, chartImage }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Borrador de Factura</Text>
-          <Text style={styles.subtitle}>Reporte de Gestión Logística - Listogo</Text>
+          <Text style={styles.title}>Mobile</Text>
+          <Text style={styles.subtitle}>Reporte de Gestión Logística</Text>
         </View>
         <View style={{ textAlign: 'right' }}>
           <Text style={{ fontSize: 10, fontWeight: 'bold' }}>{clientName}</Text>
@@ -117,11 +134,11 @@ const MyPDFDocument: React.FC<PDFDocumentProps> = ({ data, stats, clientName, da
 
       <View style={styles.statsGrid}>
         <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Ingresos Totales</Text>
+          <Text style={styles.statLabel}>Monto Total</Text>
           <Text style={styles.statValue}>${stats.ingresosTotales.toLocaleString()}</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Ticket Promedio</Text>
+          <Text style={styles.statLabel}>Costo Promedio</Text>
           <Text style={styles.statValue}>${stats.ticketPromedio.toFixed(2)}</Text>
         </View>
         <View style={styles.statCard}>
@@ -153,8 +170,15 @@ const MyPDFDocument: React.FC<PDFDocumentProps> = ({ data, stats, clientName, da
         ))}
       </View>
 
+      {chartImage && (
+        <View>
+          <Text style={styles.sectionTitle}>Análisis de Tendencias</Text>
+          <Image src={chartImage} style={styles.chartImage} />
+        </View>
+      )}
+
       <Text style={styles.footer}>
-        Generado automáticamente por Listogo Reporting Hub - {new Date().toLocaleString()}
+        Generado automáticamente por MOBILE - {new Date().toLocaleString()}
       </Text>
     </Page>
   </Document>
@@ -168,21 +192,70 @@ interface PDFExporterProps {
 }
 
 export const PDFExporter: React.FC<PDFExporterProps> = ({ data, stats, clientName, dateRange }) => {
+
+  const [chartImage, setChartImage] = useState<string | null>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [hasAttemptedCapture, setHasAttemptedCapture] = useState(false);
+
+  const handleCaptureAndDownload = async () => {
+    setIsCapturing(true);
+    const element = document.getElementById('charts-report-container');
+
+    if (!element || data.length === 0) {
+        setChartImage(null); 
+        setIsCapturing(false);
+        // Forzamos un estado que indique que ya puede descargar
+        setHasAttemptedCapture(true); 
+        return;
+    }
+    
+    try {
+      // 1. Capturamos el DOM como imagen
+      const dataUrl = await domToPng(element, {
+          quality: 1,
+          scale: 2,
+          backgroundColor: '#ffffff',
+      });
+        
+      setChartImage(dataUrl);
+    } catch (err) {
+      console.error("Error capturando gráficas:", err);
+    } finally {
+      setIsCapturing(false);
+      setHasAttemptedCapture(true);
+    }
+
+  };
+
   const fileName = `reporte_${clientName.replace(/\s+/g, '_').toLowerCase()}_${dateRange.start}_al_${dateRange.end}.pdf`;
 
   return (
     <div className="flex justify-end">
-      <PDFDownloadLink
-        document={<MyPDFDocument data={data} stats={stats} clientName={clientName} dateRange={dateRange} />}
-        fileName={fileName}
-        className="bg-blue-300 px-10 py-5 rounded-xl font-black text-lg flex items-center gap-4 cloud-shadow hover:scale-[1.02] transition-transform active:scale-95 cursor-pointer"
-      >
-        {({ loading }) => (
-          <>
-            {loading ? 'Preparando PDF...' : 'Generar Borrador Factura PDF'}
-          </>
-        )}
-      </PDFDownloadLink>
+      {!hasAttemptedCapture ? (
+        <button
+          onClick={handleCaptureAndDownload}
+          disabled={isCapturing}
+          className="bg-blue-600 px-10 py-5 rounded-xl font-black text-white text-lg shadow-xl"
+        >
+          {isCapturing ? 'Preparando Reporte...' : 'Generar Reporte PDF'}
+        </button>
+      ) : (
+        <PDFDownloadLink
+          document={
+            <MyPDFDocument 
+              data={data} 
+              stats={stats} 
+              clientName={clientName} 
+              dateRange={dateRange} 
+              chartImage={chartImage} 
+            />
+          }
+          fileName={`reporte_${clientName}.pdf`}
+          className="bg-green-600 px-10 py-5 rounded-xl font-black text-white text-lg shadow-xl"
+        >
+          {({ loading }) => (loading ? 'Creando Archivo...' : 'Descargar Ahora')}
+        </PDFDownloadLink>
+      )}
     </div>
   );
 };

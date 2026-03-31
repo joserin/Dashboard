@@ -3,7 +3,7 @@ import { useExcelParser, useDashboardDelivery } from '../../hooks/useDashboardMo
 import { FileUpload } from '../file/FileUpload.tsx';
 import { MotorizadoPDFExporter } from '../motorized/MotorizadoPDFExporter.tsx';
 import  { Filters } from '../motorized/Filters.tsx';
-import { StatsGrid } from '../motorized/StatsGrid.tsx';
+import { StatsGridMoto } from '../motorized/StatsGridMoto.tsx';
 import { DataTableMoto } from '../motorized/DataTableMoto.tsx';
 import { MotoPerformanceCharts } from '../motorized/MotoTimeCharts.tsx';
 
@@ -93,7 +93,7 @@ export default function MotorizedManager() {
         />
       </section>
 
-        <StatsGrid stats={stats} />
+        <StatsGridMoto stats={stats} />
         <MotoPerformanceCharts data={chartData} zonas={stats.zonasFrecuentes}/>
         <DataTableMoto data={filteredData} />
 
@@ -101,7 +101,7 @@ export default function MotorizedManager() {
             <MotorizadoPDFExporter 
               data={filteredData} 
               stats={stats} 
-              motorizadoNombre={selectedMotorizado === 'All' ? 'Reporte General' : selectedMotorizado}
+              motorizadoNombre={selectedMotorizado === 'Todos' ? 'Reporte General' : selectedMotorizado}
             />
         )}
         

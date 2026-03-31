@@ -13,7 +13,7 @@ export function StatsGrid({ stats }: StatsGridProps) {
             description: 'Total acumulado en el Excel',
         },
         {
-            title: 'Ticket Promedio',
+            title: 'Costo Promedio',
             value: `$${stats.ticketPromedio.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
             color: 'bg-secondary-fixed text-secondary',
             description: 'Promedio por pedido',
