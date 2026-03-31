@@ -51,13 +51,14 @@ export const FiltersBar: React.FC<FiltersBarProps> = ({
                 />
             </div>
         </section>
-
+        {/*
         <button 
             onClick={onRefresh}
             className="bg-primary rounded-lg font-bold text-sm text-center flex items-center gap-2 hover:opacity-90 transition-opacity active:scale-95"
         >
             Actualizar
         </button>
+        */}
     </div>
   );
 };

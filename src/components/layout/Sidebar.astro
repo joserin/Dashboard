@@ -1,8 +1,8 @@
 ---
 const menuItems = [
-  { icon: 'LayoutDashboard', label: 'Inicio', active: true },
-  { icon: 'Users', label: 'Clientes', active: false },
-  { icon: 'Package', label: 'Motorizados', active: false },
+  { url: '/', label: 'Inicio', active: true },
+  { url: '/client', label: 'Clientes', active: false },
+  { url: '/delivery', label: 'Motorizados', active: false },
 ];
 ---
 
@@ -15,8 +15,7 @@ const menuItems = [
 
     <nav class="space-y-2 flex md:flex-col gap-5">
       {menuItems.map((Item) => (
-        <a href="#" class="w-full flex items-center gap-3 px-1 py-2 rounded-xl text-sm font-bold transition-all text-slate-600 hover:bg-slate-50">
-          <Item.icon />
+        <a href={Item.url} class="w-full flex items-center gap-3 px-1 py-2 rounded-xl text-sm font-bold transition-all text-slate-600 hover:bg-slate-50">
           {Item.label}
         </a>
       ))}
