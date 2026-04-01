@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import type { DeliveryDataMoto } from '../../env';
+import type { DeliveryData } from '../../env';
 
 interface DataTableProps {
-  data: DeliveryDataMoto[];
+  data: DeliveryData[];
 }
 
 export function DataTableMoto({ data = []}: DataTableProps) {
@@ -24,21 +24,18 @@ export function DataTableMoto({ data = []}: DataTableProps) {
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100 mb-4">
       {/* Header de pestañas similar al original */}
-      <div className="flex border-b border-slate-100 px-8 bg-slate-50/30">
-        <button className="px-6 py-5 text-sm font-bold text-orange-600 border-b-2 border-orange-600">
+      <header className="flex border-b border-slate-100 px-8 bg-slate-50/30">
+        <h3 className="px-6 py-5 text-sm font-bold text-orange-600 border-b-2 border-orange-600">
           Detalle de Pedidos
-        </button>
-        <button className="px-6 py-5 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors">
-          Resumen Tiempos
-        </button>
-      </div>
+        </h3>
+      </header>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50/50">
               <th className="px-8 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
-              <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pedido ID</th>
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Motorizado</th>
               <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Ruta (Zonas)</th>
               <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estado</th>
               <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Tarifa</th>
@@ -46,20 +43,19 @@ export function DataTableMoto({ data = []}: DataTableProps) {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {currentItems.map((item, index) => {
-              // Reemplazo de 'cn' por lógica manual de clases
               const isEven = index % 2 !== 0;
               const rowClass = `hover:bg-orange-50/30 transition-colors group ${isEven ? 'bg-slate-50/30' : ''}`;
 
               // Lógica de colores para estados
               const statusContainerClass = `inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                item.estado === 'Completado' ? "bg-green-100 text-green-700" :
-                item.estado === 'En Tránsito' ? "bg-blue-100 text-blue-700" :
+                item.status === 'Completado' ? "bg-green-100 text-green-700" :
+                item.status === 'Pendiente' ? "bg-blue-100 text-blue-700" :
                 "bg-red-100 text-red-700"
               }`;
 
               const dotClass = `w-1 h-1 rounded-full ${
-                item.estado === 'Completado' ? "bg-green-600" :
-                item.estado === 'En Tránsito' ? "bg-blue-600" :
+                item.status === 'Completado' ? "bg-green-600" :
+                item.status === 'Pendiente' ? "bg-blue-600" :
                 "bg-red-600"
               }`;
 
@@ -69,7 +65,7 @@ export function DataTableMoto({ data = []}: DataTableProps) {
                     {new Date(item.fecha).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
                   </td>
                   <td className="px-6 py-4 text-sm font-bold text-orange-600 font-mono">
-                    {item.pedidoId}
+                    {item.motorizadoName}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1.5">
@@ -85,11 +81,11 @@ export function DataTableMoto({ data = []}: DataTableProps) {
                   <td className="px-6 py-4">
                     <span className={statusContainerClass}>
                       <span className={dotClass}></span>
-                      {item.estado}
+                      {item.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm font-bold text-slate-900 text-right">
-                    ${item.tarifa.toFixed(2)}
+                    ${item.tarifaRider.toFixed(2)}
                   </td>
                 </tr>
               );

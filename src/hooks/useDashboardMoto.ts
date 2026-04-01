@@ -1,117 +1,71 @@
 import { useState, useMemo, useCallback } from 'react';
-import * as XLSX from 'xlsx';
-import type { DeliveryDataMoto, DeliveryStatus,  DashboardFiltersMoto, DashboardStatsMoto  } from '../env'; 
+import type { DeliveryData, DashboardStatsMoto, DeliveryStatus  } from '../env'; 
 import { isWithinInterval, parseISO, startOfDay, endOfDay, parse, isValid } from 'date-fns';
+import { useExcelParser, getExcelVal } from './useExcelParser';
 
-export function useExcelParser() {
-  const [data, setData] = useState<DeliveryDataMoto[]>([]);
-  const [isParsing, setIsParsing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const formatExcelDate = (rawDate: any): string => {
+  let formattedDate = new Date();
+  if (!rawDate) return formattedDate.toISOString();
 
-  const parseExcel = useCallback(async (file: File) => {
-    setIsParsing(true);
-    setError(null);
+  if (!isNaN(Number(rawDate)) && typeof rawDate !== 'string') {
+    formattedDate = startOfDay(new Date((Number(rawDate) - 25569) * 86400 * 1000));
+  } else {
+    const dateStr = String(rawDate).trim();
+    const attempt = parse(dateStr, 'dd/MM/yyyy', new Date());
+    if (isValid(attempt)) {
+      formattedDate = attempt;
+    } else {
+      const fallback = new Date(dateStr);
+      if (isValid(fallback)) formattedDate = fallback;
+    }
+  }
+  return formattedDate.toISOString();
+};
 
-    return new Promise<DeliveryDataMoto[]>((resolve, reject) => {
-      const reader = new FileReader();
+export function useDashboardDelivery() {
 
-      reader.onload = (e) => {
-        try {
-          const data = new Uint8Array(e.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const targetSheetName = "moto";
-          const worksheet = workbook.Sheets[targetSheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
-
-          // Normalize data structure
-          const normalizedData: DeliveryDataMoto[] = jsonData.map((row, index) => {
-            // Función auxiliar idéntica a la de Client para buscar keys sin importar formato
-            const getVal = (targetKeys: string[]) => {
-              const rowKeys = Object.keys(row);
-              const foundKey = rowKeys.find(key => 
-                targetKeys.some(target => target.toLowerCase() === key.trim().toLowerCase())
-              );
-              return foundKey ? row[foundKey] : undefined;
-            };
-
-            // Manejo robusto de la fecha (String, Date objeto o Serial de Excel)
-            const rawDate = getVal(['Fecha']);
-            let formattedDate = new Date()
-            if (rawDate) {
-              // Caso A: Excel lo envió como número de serie (ej: 45350)
-              if (!isNaN(Number(rawDate)) && typeof rawDate !== 'string') {
-                formattedDate = new Date((Number(rawDate) - 25569) * 86400 * 1000);
-              }
-              // Caso B: Es un String (puede venir 10/03/2026 o 03/10/2026)
-              else{
-                const dateStr = String(rawDate).trim();
-                // Intentamos parsear asumiendo que el usuario prefiere Día/Mes/Año
-                const attempt = parse(dateStr, 'dd/MM/yyyy', new Date());
-                
-                if (isValid(attempt)) {
-                  formattedDate = attempt;
-                } else {
-                  // Si falla, intentamos que el navegador lo entienda (ISO o local)
-                  const fallback = new Date(dateStr);
-                  if (isValid(fallback)) formattedDate = fallback;
-                }
-              }
-            }
-            const fechaFinal = formattedDate.toISOString();
-
-            return {
-              fecha: fechaFinal,
-              pedidoId: String(getVal(['Pedido']) || `#ORD-${10000 + index}`),
-              motorizadoNombre: String(getVal(['Motorizado']) || 'Desconocido'),
-              //motorizadoId: String(getVal(['motorizadoId', 'id motorizado', 'cedula']) || '0'),
-              cliente: String(getVal(['Cliente']) || 'Sin Cliente'),
-              zonaOrigen: String(getVal(['zona Origen']) || 'N/A'),
-              zonaDestino: String(getVal(['zona Destino']) || 'N/A'),
-              estado: (getVal(['Estado']) || 'Completado') as DeliveryStatus,
-              tarifa: Number(getVal(['Tarifa']) || 0),
-              montoFlete: Number(getVal(['Flete']) || 0),
-              tiempoRetiro: String(getVal(['Retiro']) || '00:00:00'),
-              tiempoEntrega: String(getVal(['Entrega']) || '00:00:00'),
-              // Campos adicionales si existen en tu env.d.ts
-              montoTotal: Number(getVal(['Monto']) || 0), 
-            };
-          });
-
-          setData(normalizedData);
-          setIsParsing(false);
-          resolve(normalizedData);
-        } catch (err) {
-          setIsParsing(false);
-          setError('Error al procesar el archivo Excel. Asegúrese de que el formato sea correcto.');
-          reject(err);
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  }, []);
-  return { data, setData, parseExcel, isParsing, error };
-}
-
-export function useDashboardDelivery(data: DeliveryDataMoto[]) {
-
+  const { data, parseExcel, isLoading, error } = useExcelParser<DeliveryData>();
+  const [selectedMotorizado, setSelectedMotorizado] = useState<string>('Todos');
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
     start: '',
     end: '',
   });
-  const [selectedMotorizado, setSelectedMotorizado] = useState<string>('Todos');
+ 
+  const handleFileUpload = async (file: File) => {
+    await parseExcel(file, 'dashboard', (row, index) => {
+            
+      return {
+        fecha: formatExcelDate(getExcelVal(row, ['Fecha'])),
+        pedidoId: String(getExcelVal(row, ['Pedido']) || `#ORD-${10000 + index}`),
+        motorizadoName: String(getExcelVal(row, ['Motorizado']) || 'Desconocido'),
+        clienteName: String(getExcelVal(row, ['Cliente']) || 'Sin Cliente'),
+        clienteRecibe: String(getExcelVal(row, ['Receptor']) || 'Otros'),
+        zonaOrigen: String(getExcelVal(row, ['zona Origen']) || 'N/A'),
+        zonaDestino: String(getExcelVal(row, ['zona Destino']) || 'N/A'),
+        status: (getExcelVal(row, ['Estado']) || 'Completado') as DeliveryStatus,
+        tarifaClient: Number(getExcelVal(row, ['Tarifa Cliente']) || 0),
+        tarifaRider: Number(getExcelVal(row, ['Tarifa Moto']) || 0),
+        timeRetiro: String(getExcelVal(row, ['Retiro']) || '00:00:00'),
+        timeEntrega: String(getExcelVal(row, ['Entrega']) || '00:00:00'),
+      };
+    });
+  };
 
   const filteredData = useMemo(() => {
     return data.filter((item) => {
-      const matchesMoto = selectedMotorizado === 'Todos' || item.motorizadoNombre === selectedMotorizado;
-      
+
+      const matchesMoto = selectedMotorizado === 'Todos' || item.motorizadoName === selectedMotorizado;
       let matchesDate = true;
       
       if (dateRange.start && dateRange.end) {
-        
-        const itemDate = parseISO(item.fecha);
+
+        const itemDate = new Date(item.fecha);
+        const startDate = startOfDay(parseISO(dateRange.start));
+        const endDate = endOfDay(parseISO(dateRange.end));
+
         matchesDate = isWithinInterval(itemDate, {
-          start: startOfDay(parseISO(dateRange.start)),
-          end: endOfDay(parseISO(dateRange.end)),
+          start: startDate,
+          end: endDate,
         });
       }
       
@@ -121,14 +75,23 @@ export function useDashboardDelivery(data: DeliveryDataMoto[]) {
   }, [data, selectedMotorizado, dateRange]);
 
   const stats = useMemo<DashboardStatsMoto>(() => {
-    const totalEntregas = filteredData.length;
-    const totalMonto = filteredData.reduce((acc, curr) => acc + curr.montoTotal, 0);
-    const clienteMonto = filteredData.reduce((acc, curr) => acc + curr.tarifa, 0);
-    const riderMonto = filteredData.reduce((acc, curr) => acc + curr.montoFlete, 0);
+
+    const estadosActivos = ['Completado', 'Pendiente'];
+    const completedData = filteredData.filter(d => estadosActivos.includes(d.status));
+
+    const totalEntregas = completedData.length;
+
+    const totalCobradoEnvio = completedData.reduce((acc, curr) => {
+      return curr.status !== 'Cancelado' ? acc + curr.tarifaClient : acc;
+    }, 0);
+    const totalPagadoMoto = completedData.reduce((acc, curr) => {
+      return curr.status !== 'Cancelado' ? acc + curr.tarifaRider : acc;
+    }, 0);
+    const gananciaDelivery = totalCobradoEnvio - totalPagadoMoto;
 
     // Zonas Frecuentes
     const zones: { [key: string]: number } = {};
-    filteredData.forEach((item) => {
+    completedData.forEach((item) => {
       zones[item.zonaDestino] = (zones[item.zonaDestino] || 0) + 1;
     });
 
@@ -144,14 +107,15 @@ export function useDashboardDelivery(data: DeliveryDataMoto[]) {
     return {
       totalEntregas,
       zonasFrecuentes: sortedZones,
-      total: totalMonto,
-      cliente: clienteMonto,
-      rider: riderMonto,
+      ganancia: gananciaDelivery,
+      rider: totalPagadoMoto,
+      efectividad: totalEntregas > 0 
+      ? (filteredData.filter(d => d.status === 'Completado').length / totalEntregas) * 100 : 0
     };
   }, [filteredData]);
 
   const motorizados = useMemo(() => {
-    const names = Array.from(new Set(data.map((item) => item.motorizadoNombre)));
+    const names = Array.from(new Set(data.map((item) => item.motorizadoName)));
     return ['Todos', ...names];
   }, [data]);
 
@@ -159,9 +123,12 @@ export function useDashboardDelivery(data: DeliveryDataMoto[]) {
     filteredData,
     stats,
     motorizados,
+    handleFileUpload,
     selectedMotorizado,
     setSelectedMotorizado,
     dateRange,
     setDateRange,
+    isLoading,
+    error,
   };
 }

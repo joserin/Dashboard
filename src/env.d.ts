@@ -1,12 +1,16 @@
 export interface DeliveryData {
   fecha: string;
   pedidoId: string;
-  montoTotal: number;
-  motorizadoId: string;
-  tiempoRetiro: string;
-  tiempoEntrega: string;
+  motorizadoName: string;
   clienteName: string; // Added for filtering/display
+  clienteRecibe: string;
   status: 'Completado' | 'Pendiente' | 'Cancelado'; // Based on screenshot
+  zonaOrigen: string;
+  zonaDestino: string;
+  tarifaClient: number;
+  tarifaRider: number;
+  timeRetiro: string;
+  timeEntrega: string;
 }
 
 export interface FinancialSplit {
@@ -19,7 +23,6 @@ export interface DashboardStats {
   ingresosTotales: number;
   ticketPromedio: number;
   tasaCancelacion: number;
-  cargosExtra: number;
   totalEntregas: number;
 }
 
@@ -31,30 +34,14 @@ export interface ChartData {
 
 //---DeliveryData---
 
-export type DeliveryStatus = 'Completado' | 'En Tránsito' | 'Cancelado';
+export type DeliveryStatus = 'Completado' | 'Pendiente' | 'Cancelado';
 
-
-export interface DeliveryDataMoto {
-  fecha: string; // ISO string or formatted date
-  pedidoId: string;
-  montoTotal: number;
-  //motorizadoId: string;
-  motorizadoNombre: string;
-  cliente: string;
-  tiempoRetiro: string;
-  tiempoEntrega: string;
-  estado: DeliveryStatus;
-  zonaOrigen: string;
-  zonaDestino: string;
-  tarifa: number;
-  montoFlete: number;
-}
 
 export interface DashboardStatsMoto {
   totalEntregas: number;
   zonasFrecuentes: { nombre: string; porcentaje: number; color: string }[];
-  total: number;
-  cliente: number;
+  ganancia: number;
+  efectividad: number;
   rider: number;
 }
 

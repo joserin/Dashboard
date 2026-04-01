@@ -7,13 +7,13 @@ interface StatsGridProps {
 export function StatsGrid({ stats }: StatsGridProps) {
     const cards = [
         {
-            title: 'Ingresos Totales',
+            title: 'Monto Totales',
             value: `$${stats.ingresosTotales.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
             color: 'bg-primary-fixed text-primary',
             description: 'Total acumulado en el Excel',
         },
         {
-            title: 'Costo Promedio',
+            title: 'Monto Promedio',
             value: `$${stats.ticketPromedio.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
             color: 'bg-secondary-fixed text-secondary',
             description: 'Promedio por pedido',

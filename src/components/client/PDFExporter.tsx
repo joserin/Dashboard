@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Image } from '@react-pdf/renderer';
 import type { DashboardStats, DeliveryData } from '../../env';
 import { domToPng } from 'modern-screenshot';
@@ -114,9 +114,10 @@ interface PDFDocumentProps {
   clientName: string;
   dateRange: { start: string; end: string };
   chartImage: string | null;
+  receptor?: string | null;
 }
 
-const MyPDFDocument: React.FC<PDFDocumentProps> = ({ data, stats, clientName, dateRange, chartImage }) => (
+const MyPDFDocument: React.FC<PDFDocumentProps> = ({ data, stats, clientName, dateRange, chartImage, receptor }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
@@ -129,6 +130,7 @@ const MyPDFDocument: React.FC<PDFDocumentProps> = ({ data, stats, clientName, da
           <Text style={{ fontSize: 8, color: '#574237' }}>
             Periodo: {dateRange.start || 'N/A'} - {dateRange.end || 'N/A'}
           </Text>
+          {receptor && <Text style={{ fontSize: 8, color: '#574237' }}>Recibió: {receptor}</Text>}
         </View>
       </View>
 
@@ -165,7 +167,7 @@ const MyPDFDocument: React.FC<PDFDocumentProps> = ({ data, stats, clientName, da
             <Text style={styles.col2}>{item.clienteName}</Text>
             <Text style={styles.col3}>{item.status}</Text>
             <Text style={styles.col4}>{new Date(item.fecha).toLocaleDateString()}</Text>
-            <Text style={[styles.col5, { fontWeight: 'bold' }]}>${item.montoTotal.toFixed(2)}</Text>
+            <Text style={[styles.col5, { fontWeight: 'bold' }]}>${item.tarifaClient.toFixed(2)}</Text>
           </View>
         ))}
       </View>
@@ -188,14 +190,20 @@ interface PDFExporterProps {
   data: DeliveryData[];
   stats: DashboardStats;
   clientName: string;
+  receptor?: string | null;
   dateRange: { start: string; end: string };
 }
 
-export const PDFExporter: React.FC<PDFExporterProps> = ({ data, stats, clientName, dateRange }) => {
+export const PDFExporter: React.FC<PDFExporterProps> = ({ data, stats, clientName, dateRange, receptor }) => {
 
   const [chartImage, setChartImage] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [hasAttemptedCapture, setHasAttemptedCapture] = useState(false);
+
+  useEffect(() => {
+    setHasAttemptedCapture(false);
+    setChartImage(null); // Limpiamos la imagen vieja para que no salga en el nuevo reporte
+  }, [data, clientName, dateRange, receptor]);
 
   const handleCaptureAndDownload = async () => {
     setIsCapturing(true);
@@ -224,7 +232,6 @@ export const PDFExporter: React.FC<PDFExporterProps> = ({ data, stats, clientNam
       setIsCapturing(false);
       setHasAttemptedCapture(true);
     }
-
   };
 
   const fileName = `reporte_${clientName.replace(/\s+/g, '_').toLowerCase()}_${dateRange.start}_al_${dateRange.end}.pdf`;
@@ -235,7 +242,7 @@ export const PDFExporter: React.FC<PDFExporterProps> = ({ data, stats, clientNam
         <button
           onClick={handleCaptureAndDownload}
           disabled={isCapturing}
-          className="bg-blue-600 px-10 py-5 rounded-xl font-black text-white text-lg shadow-xl"
+          className="bg-blue-600 px-4 py-2 rounded-xl text-white text-lg shadow-xl"
         >
           {isCapturing ? 'Preparando Reporte...' : 'Generar Reporte PDF'}
         </button>
@@ -245,13 +252,14 @@ export const PDFExporter: React.FC<PDFExporterProps> = ({ data, stats, clientNam
             <MyPDFDocument 
               data={data} 
               stats={stats} 
-              clientName={clientName} 
+              clientName={clientName}
+              receptor={receptor}
               dateRange={dateRange} 
               chartImage={chartImage} 
             />
           }
-          fileName={`reporte_${clientName}.pdf`}
-          className="bg-green-600 px-10 py-5 rounded-xl font-black text-white text-lg shadow-xl"
+          fileName={fileName}
+          className="bg-green-600 px-2 py-1 rounded-xl font-black text-white text-lg shadow-xl"
         >
           {({ loading }) => (loading ? 'Creando Archivo...' : 'Descargar Ahora')}
         </PDFDownloadLink>

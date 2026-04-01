@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useExcelParser, useDashboardDelivery } from '../../hooks/useDashboardMoto.ts';
+import { useDashboardDelivery } from '../../hooks/useDashboardMoto.ts';
 import { FileUpload } from '../file/FileUpload.tsx';
 import { MotorizadoPDFExporter } from '../motorized/MotorizadoPDFExporter.tsx';
 import  { Filters } from '../motorized/Filters.tsx';
@@ -9,66 +9,130 @@ import { MotoPerformanceCharts } from '../motorized/MotoTimeCharts.tsx';
 
 export default function MotorizedManager() {
 
-    const { data, isParsing, error, parseExcel } = useExcelParser();
-
-    const { 
+  const { 
         filteredData,
         stats,
         motorizados, 
         selectedMotorizado, 
         setSelectedMotorizado, 
         dateRange, 
-        setDateRange,  
-    } = useDashboardDelivery(data);
+        setDateRange,
+        handleFileUpload,
+        isLoading,
+        error
+  } = useDashboardDelivery();
 
     // Función auxiliar para convertir "09:15:00" a minutos (555)
-    const timeToMinutes = (timeVal: string) => {
-        if (!timeVal) return 0;
-    
-        // Si Excel lo envía como string "09:15:00"
-        if (typeof timeVal === 'string') {
-        const parts = timeVal.split(':');
-        if (parts.length < 2) return 0;
-        const hrs = parseInt(parts[0], 10);
-        const mins = parseInt(parts[1], 10);
-        return (hrs * 60) + mins;
-        }
-        
-        // Si Excel lo envía como número (fracción de día: 0.5 = 12:00 PM)
-        if (typeof timeVal === 'number') {
-        return Math.round(timeVal * 24 * 60);
-        }
+  const timeToMinutes = (timeVal: string) => {
 
-        return 0;
+    if (timeVal === undefined || timeVal === null || timeVal === "") return 0;
+
+     const numVal = typeof timeVal === 'string' ? parseFloat(timeVal) : timeVal;
+
+     if (!isNaN(numVal) && typeof numVal === 'number' && !String(timeVal).includes(':')) {
+      return Math.round(numVal * 24 * 60);
+    }
+    
+    // Si es el formato string "HH:MM:SS"
+    if (typeof timeVal === 'string' && timeVal.includes(':')) {
+      const parts = timeVal.split(':');
+      const hrs = parseInt(parts[0], 10) || 0;
+      const mins = parseInt(parts[1], 10) || 0;
+      return (hrs * 60) + mins;
+    }
+
+    return 0;
   };
 
-  const chartData = useMemo(() => {
-    // Agrupamos por fecha para que la gráfica no tenga mil puntos repetidos
-    const groups: { [key: string]: any } = {};
+  const effectiveDateRange = useMemo(() => {
+      // 1. Si el usuario ya eligió fechas en el filtro, usamos esas.
+      if (dateRange.start && dateRange.end) {
+        return dateRange;
+      }
+      // 2. Si no hay filtro pero hay datos, buscamos la primera y última fecha de los registros.
+      if (filteredData.length > 0) {
+        const dates = filteredData.map(d => new Date(d.fecha).getTime());
+        return {
+          start: new Date(Math.min(...dates)).toLocaleDateString('en-CA'), // Formato YYYY-MM-DD
+          end: new Date(Math.max(...dates)).toLocaleDateString('en-CA')
+        };
+      }
+      // 3. Si no hay nada, devolvemos vacío o la fecha de hoy.
+      return { start: 'Inicio', end: 'Fin' };
+  }, [dateRange, filteredData]);
 
-    filteredData.forEach((item) => {
-        const date = new Date(item.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
-        
-        if (!groups[date]) {
-            groups[date] = {
-                date,
-                "Tarifa Total": 0,
-                "Comisión Rider": 0,
-                "Prom. Retiro": 0,
-                "count": 0
-            };
-        }
-        
-        groups[date]["Tarifa Total"] += item.tarifa;
-        groups[date]["Comisión Rider"] += item.montoFlete;
-        groups[date]["Prom. Retiro"] += timeToMinutes(item.tiempoRetiro);
-        groups[date].count += 1;
+  const chartData = useMemo(() => {
+    if (filteredData.length === 0) return [];
+
+    // 1. Agrupamos usando la fecha ISO original para evitar colisiones y permitir ordenamiento
+    const groups = filteredData.reduce((acc: any, item) => {
+      if (item.status === 'Cancelado') return acc;
+      const rawDate = item.fecha; // Mantenemos el formato original (ISO) para la lógica
+
+      if (!acc[rawDate]) {
+        acc[rawDate] = {
+          date: rawDate,
+          displayDate: new Date(item.fecha).toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: 'short',
+          }),
+          montoAcumulado: 0,
+          sumaMinutosRetiro: 0,
+          sumaMinutosEntrega: 0,
+          cantidadPedidos: 0,
+        };
+      }
+      
+      acc[rawDate].montoAcumulado += item.tarifaRider || 0;
+
+      const retiro = timeToMinutes(item.timeRetiro);
+      const entrega = timeToMinutes(item.timeEntrega);
+      
+      if (retiro > 0 && entrega > 0) {
+        acc[rawDate].sumaMinutosRetiro += retiro;
+        acc[rawDate].sumaMinutosEntrega += entrega;
+        acc[rawDate].cantidadPedidos++;
+      }
+
+      return acc;
+    }, {});
+
+    // 2. ORDENAMOS: Importante para que la línea de la gráfica no haga zig-zag
+    const sortedArray = Object.values(groups).sort((a: any, b: any) => {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
-    // Convertimos el objeto en un array y calculamos promedios
-    return Object.values(groups).map(group => ({
-        ...group,
-        "Prom. Retiro": Math.round(group["Prom. Retiro"] / group.count)
+
+    // 3. MAPEAMOS: Calculamos promedios y limpiamos nombres para Tremor
+    return sortedArray.map((g: any) => {
+      const promedioMinutos = g.cantidadPedidos > 0 
+        ? Math.round((g.sumaMinutosEntrega - g.sumaMinutosRetiro) / g.cantidadPedidos) : 0;
+
+      return {
+        date: g.displayDate,     // Eje X de las gráficas
+        tarifa: g.montoAcumulado, // Gráfica de Comisiones
+        Tiempo: promedioMinutos,  // Gráfica de Tiempo Promedio
+      };
+    });
+  }, [filteredData]);
+
+  const hourlyData = useMemo(() => {
+    const hours = Array.from({ length: 24 }, (_, i) => ({
+      hora: `${i}:00`,
+      pedidos: 0
     }));
+
+    filteredData.forEach(item => {
+      if (item.status !== 'Cancelado') {
+        const mins = timeToMinutes(item.timeRetiro);
+        const hour = Math.floor(mins / 60);
+        if (hour >= 0 && hour < 24) {
+          hours[hour].pedidos++;
+        }
+      }
+    });
+
+    // Filtramos horas sin pedidos para que la gráfica no se vea tan vacía
+    return hours.filter(h => h.pedidos > 0);
   }, [filteredData]);
 
   return (
@@ -79,34 +143,33 @@ export default function MotorizedManager() {
           <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight">Motorizados Dashboard</h2>
         </section>
         <section>
-            <FileUpload onFileSelect={parseExcel} isLoading={isParsing} />
+            <FileUpload onFileSelect={handleFileUpload} isLoading={isLoading} />
         </section>
       </header>
 
-      <section>
-        <Filters 
-          motorizados={motorizados}
-          selectedMotorizado={selectedMotorizado}
-          onMotorizadoChange={setSelectedMotorizado}
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
-        />
-      </section>
+      <Filters 
+        motorizados={motorizados}
+        selectedMotorizado={selectedMotorizado}
+        onMotorizadoChange={setSelectedMotorizado}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+      />
 
-        <StatsGridMoto stats={stats} />
-        <MotoPerformanceCharts data={chartData} zonas={stats.zonasFrecuentes}/>
-        <DataTableMoto data={filteredData} />
+      <StatsGridMoto stats={stats} />
+      <MotoPerformanceCharts data={chartData} zonas={stats.zonasFrecuentes} hourlyData={hourlyData}/>
+      <DataTableMoto data={filteredData} />
 
         {filteredData.length > 0 && (
             <MotorizadoPDFExporter 
               data={filteredData} 
               stats={stats} 
               motorizadoNombre={selectedMotorizado === 'Todos' ? 'Reporte General' : selectedMotorizado}
+              dateRange={effectiveDateRange}
             />
         )}
         
         {/* Loading Overlay */}
-        {isParsing && (
+        {isLoading && (
             <div className="fixed inset-0 z-100 bg-white/60 backdrop-blur-sm flex items-center justify-center">
                 <p>PROCESANDO...</p>
             </div>

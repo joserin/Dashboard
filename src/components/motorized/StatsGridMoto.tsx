@@ -11,26 +11,32 @@ export function StatsGridMoto({ stats }: StatsGridProps) {
       title: "Total Entregas",
       value: stats.totalEntregas.toLocaleString(),
       description: "Servicios completados con éxito",
-      highlight: false
+      highlight: true
     },
     {
-      title: "Monto Total Bruto",
-      value: `$${stats.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+      title: "Ganancias",
+      value: `$${stats.ganancia.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
       description: "Volumen total de facturación",
       highlight: false
     },
     {
-      title: "Comisión Motorizado",
+      title: "Monto Motorizado",
       value: `$${stats.rider.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
-      description: "Ganancia neta para el motorizado",
+      description: "Ganancia neta motorizado",
+      highlight: true // Para aplicar el borde naranja distintivo
+    },
+    {
+      title: "Efectividad",
+      value: `${stats.efectividad.toFixed(2)}%`,
+      description: "Porcentaje de entregas exitosas",
       highlight: true // Para aplicar el borde naranja distintivo
     }
   ];
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 justify-between items-center">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-6 justify-between items-center">
       {/* Grid Principal de Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 col-span-2">
         {cards.map((card) => (
           <section 
             key={card.title}

@@ -10,7 +10,7 @@ const valueFormatter = (number: number) =>
   `${Intl.NumberFormat('us').format(number).toString()} Ent`;
 
 const currencyFormatter = (number: number) => 
-  `$${Intl.NumberFormat('us').format(number).toString()} $`;
+  `$${Intl.NumberFormat('us').format(number).toString()}`;
 
 const timeFormatter = (number: number) => {
     const hours = Math.floor(number / 60);
@@ -70,7 +70,7 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
             <div className="mb-4">
                 <Flex justifyContent="between" alignItems="center">
                     <Title className="text-slate-900 font-bold">Análisis de Entregas</Title>
-                    <Badge color="blue">En tiempo real</Badge>
+                    <Badge color="red">En tiempo real</Badge>
                 </Flex>
             </div>
             
@@ -105,7 +105,7 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
                 data={data}
                 index="displayDate"
                 categories={['Monto']} // Necesitas asegurarte que el useMemo del Manager envíe este campo
-                colors={['emerald']}
+                colors={['green']}
                 valueFormatter={currencyFormatter}
                 showLegend={false}
                 allowDecimals={true}
@@ -121,7 +121,7 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
                         <Title className="text-slate-900 font-bold">Rendimiento por Usuario</Title>
                         <Text className="text-slate-500 text-xs text-left">Tiempo promedio de entrega (Desde Retiro hasta Destino)</Text>
                     </div>
-                    <Badge color="amber">Horas</Badge>
+                    <Badge color="red">Horas</Badge>
                 </Flex>
             </div>
             
@@ -131,7 +131,7 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
                 index="displayDate"
                 categories={['Tiempo']} // Este es el promedio de duración
                 colors={['orange']}
-                valueFormatter={durationFormatter}
+                valueFormatter={(number) => `${number} m`}
                 showLegend={true}
                 yAxisWidth={60}
                 customTooltip={MiCuadroPersonalizado}
@@ -143,7 +143,7 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
             <div className="mb-4">
                 <Flex justifyContent="between" alignItems="center">
                     <Title className="text-slate-900 font-bold">Eficiencia Horaria (Promedios)</Title>
-                    <Badge color="amber">Reloj</Badge>
+                    <Badge color="red">Reloj</Badge>
                 </Flex>
                 <Text className="text-slate-500 text-xs text-left">Hora promedio en la que se realizan los procesos</Text>
             </div>
@@ -158,7 +158,6 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
                 curveType="monotone"
                 yAxisWidth={60}
                 startEndOnly={true}
-                customTooltip={MiCuadroPersonalizado}
             />
         </Card>
 

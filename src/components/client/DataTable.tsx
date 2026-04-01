@@ -77,7 +77,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data = [] }) => {
                                     {new Date(item.fecha).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
                                 </td>
                                 <td className="px-8 py-5 text-right font-bold text-slate-900">
-                                    ${item.montoTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                    ${item.tarifaClient.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                 </td>
                             </tr>
                         );
@@ -86,7 +86,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data = [] }) => {
             </table>
         </section>
 
-        <footer className="px-8 py-6 bg-surface-container-low flex justify-between items-center border-t border-slate-200">
+        <footer className="px-1 py-2 bg-surface-container-low flex justify-between items-center border-t border-slate-200">
             <p className="text-sm text-on-surface-variant font-medium">
                 Mostrando {currentItems.length} de {data.length} transacciones
             </p>
