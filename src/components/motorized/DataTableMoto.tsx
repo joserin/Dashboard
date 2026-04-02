@@ -60,12 +60,21 @@ export function DataTableMoto({ data = []}: DataTableProps) {
               }`;
 
               return (
-                <tr key={item.pedidoId || index} className={rowClass}>
+                <tr key={item.internalId || index} className={rowClass}>
                   <td className="px-8 py-4 text-sm font-medium text-slate-600">
                     {new Date(item.fecha).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
                   </td>
-                  <td className="px-6 py-4 text-sm font-bold text-orange-600 font-mono">
-                    {item.motorizadoName}
+                  <td >
+                    <div className="flex flex-col">
+                      <span className=" text-sm font-bold text-orange-600 font-mono">{item.motorizadoName}</span>
+                      {item.observaciones ? (
+                          <span className="text-xs leading-tight text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100 self-start">
+                              {item.observaciones}
+                          </span>
+                      ) : (
+                          <span className="text-xs text-slate-500">{item.clienteRecibe}</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1.5">

@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import type { DeliveryData, DashboardStatsMoto, DeliveryStatus  } from '../env'; 
 import { isWithinInterval, parseISO, startOfDay, endOfDay, parse, isValid } from 'date-fns';
-import { useExcelParser, getExcelVal } from './useExcelParser';
+import { useExcelParser, getExcelVal, convertTo24h } from './useExcelParser';
 
 const formatExcelDate = (rawDate: any): string => {
   let formattedDate = new Date();
@@ -19,6 +19,7 @@ const formatExcelDate = (rawDate: any): string => {
       if (isValid(fallback)) formattedDate = fallback;
     }
   }
+
   return formattedDate.toISOString();
 };
 
@@ -39,6 +40,7 @@ export function useDashboardDelivery() {
       await parseExcel(file, 'dashboard', (row, index) => {
               
         return {
+          internalId: `row-${index}-${Math.random().toString(36).slice(2)}`,
           fecha: formatExcelDate(getExcelVal(row, ['Fecha'])),
           pedidoId: String(getExcelVal(row, ['Pedido']) || `#ORD-${10000 + index}`),
           motorizadoName: String(getExcelVal(row, ['Motorizado']) || 'Desconocido'),
@@ -47,10 +49,11 @@ export function useDashboardDelivery() {
           zonaOrigen: String(getExcelVal(row, ['zona Origen']) || 'N/A'),
           zonaDestino: String(getExcelVal(row, ['zona Destino']) || 'N/A'),
           status: (getExcelVal(row, ['Estado']) || 'Completado') as DeliveryStatus,
+          observaciones: String(getExcelVal(row, ['Observacion']) || ''),
           tarifaClient: Number(getExcelVal(row, ['Tarifa Cliente']) || 0),
           tarifaRider: Number(getExcelVal(row, ['Tarifa Moto']) || 0),
-          timeRetiro: String(getExcelVal(row, ['Retiro']) || '00:00:00'),
-          timeEntrega: String(getExcelVal(row, ['Entrega']) || '00:00:00'),
+          timeRetiro: convertTo24h(getExcelVal(row, ['Retiro']) || '00:00:00'),
+          timeEntrega: convertTo24h(getExcelVal(row, ['Entrega']) || '00:00:00'),
         };
       });
       

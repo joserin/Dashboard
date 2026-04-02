@@ -173,7 +173,7 @@ const MotorizadoDocument: React.FC<PDFDocumentProps> = ({ data, stats, motorizad
                 </View>
 
                 {data.map((item) => (
-                <View key={item.pedidoId} style={styles.tableRow}>
+                <View key={item.internalId} style={styles.tableRow}>
                     <Text style={styles.colFecha}>
                     {new Date(item.fecha).toLocaleString('es-ES', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </Text>
@@ -186,7 +186,7 @@ const MotorizadoDocument: React.FC<PDFDocumentProps> = ({ data, stats, motorizad
             </View>
 
             {chartImage && (
-              <View>
+              <View break>
                 <Text style={styles.sectionTitle}>Análisis de Tendencias</Text>
                 <Image src={chartImage} style={styles.chartImage} />
               </View>

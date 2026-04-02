@@ -24,6 +24,12 @@ export const MotoPerformanceCharts = ({ data, zonas, hourlyData }: MotoPerforman
   
   return (
     <div id="charts-report-container-moto">
+      <style dangerouslySetInnerHTML={{ __html: `
+        .recharts-cartesian-axis-tick text {
+          font-size: 10px; /* Ajusta este valor a 8px o 9px si lo quieres más pequeño */
+        }
+      `}} />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Gráfica de Eficiencia de Tiempos (BarChart) */}
         <Card className="ring-1 ring-slate-200">
@@ -31,7 +37,7 @@ export const MotoPerformanceCharts = ({ data, zonas, hourlyData }: MotoPerforman
           <BarChart
             className="h-72 mt-4"
             data={data}
-            index="date"
+            index="displayDate"
             categories={["Tiempo"]}
             colors={["indigo"]}
             valueFormatter={(number) => `${number} m`}
@@ -67,11 +73,16 @@ export const MotoPerformanceCharts = ({ data, zonas, hourlyData }: MotoPerforman
           <AreaChart
             className="h-72 mt-4"
             data={data}
-            index="date"
+            index="displayDate"
             categories={["tarifa"]}
-            colors={["orange", "cyan"]}
+            colors={["orange"]}
             valueFormatter={currencyFormatter}
             customTooltip={MiCuadroPersonalizado}
+            showXAxis={true}
+            tickGap={0}
+            startEndOnly={false}
+            intervalType="preserveStartEnd"
+            showGridLines={true}
           />
         </Card>
         

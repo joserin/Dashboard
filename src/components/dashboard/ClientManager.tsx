@@ -65,15 +65,14 @@ export default function ClientManager() {
 
     // Agrupamos por fecha
     const groups = filteredData.reduce((acc: any, item) => {
-      if (item.status === 'Cancelado') return acc;
       // Formateamos la fecha para que se vea bien en la gráfica (ej: "15 Oct")
-      const rawDate = item.fecha; 
+      const rawDate = new Date(item.fecha);
+      const dateKey = rawDate.toISOString().split('T')[0];
 
-      if (!acc[rawDate]) {
-        acc[rawDate] = { 
-          date: rawDate, // Guardamos la fecha real
-          // Creamos el label bonito solo para la vista
-          displayDate: new Date(item.fecha).toLocaleDateString('es-ES', {
+      if (!acc[dateKey]) {
+        acc[dateKey] = { 
+          date: dateKey, // Guardamos la fecha real
+          displayDate: rawDate.toLocaleDateString('es-ES', {
             day: '2-digit',
             month: 'short',
           }),
@@ -87,26 +86,26 @@ export default function ClientManager() {
         };
       }
       if (item.status === 'Completado') {
-        acc[rawDate].Completas++;
+        acc[dateKey].Completas++;
         
         // 2. Lógica Financiera: Solo sumamos monto si fue COMPLETADO
-        acc[rawDate].Monto += item.tarifaClient;
+        acc[dateKey].Monto += item.tarifaClient;
 
         // 3. Lógica de Tiempos: Solo promediamos tiempos de pedidos COMPLETADOS
         const retiroMins = timeToMinutes(item.timeRetiro);
         const entregaMins = timeToMinutes(item.timeEntrega);
 
         if (retiroMins > 0 && entregaMins > 0) {
-          acc[rawDate].totalRetiro += retiroMins;
-          acc[rawDate].totalEntrega += entregaMins;
-          acc[rawDate].countTiempos++;
+          acc[dateKey].totalRetiro += retiroMins;
+          acc[dateKey].totalEntrega += entregaMins;
+          acc[dateKey].countTiempos++;
         }
       } 
       else if (item.status === 'Pendiente') {
-        acc[rawDate].Pendientes++;
+        acc[dateKey].Pendientes++;
       } 
       else if (item.status === 'Cancelado') {
-        acc[rawDate].Cancelados++;
+        acc[dateKey].Cancelados++;
         // Nota: Aquí NO sumamos monto ni tiempos
       }
 
@@ -119,7 +118,7 @@ export default function ClientManager() {
 
     return sortedArray.map((g: any) => ({
       ...g,
-      date: g.displayDate, 
+      date: g.date, 
       Tiempo: g.countTiempos > 0 ? Math.round((g.totalEntrega - g.totalRetiro) / g.countTiempos) : 0,
       Retiro: g.countTiempos > 0 ? Math.round(g.totalRetiro / g.countTiempos) : 0,
       Entrega: g.countTiempos > 0 ? Math.round(g.totalEntrega / g.countTiempos) : 0,

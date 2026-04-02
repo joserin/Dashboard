@@ -60,12 +60,18 @@ export const DataTable: React.FC<DataTableProps> = ({ data = [] }) => {
                             "bg-red-100 text-red-700";
 
                         return (
-                            <tr key={item.pedidoId} className={rowClass}>
+                            <tr key={item.internalId} className={rowClass}>
                                 <td className="px-8 py-5 font-mono text-xs text-blue-600 font-bold">{item.pedidoId}</td>
                                 <td className="px-8 py-5">
                                     <div className="flex flex-col">
-                                    <span className="text-sm font-bold text-slate-900">{item.clienteName}</span>
-                                    <span className="text-xs text-slate-500">Entrega Estándar</span>
+                                        <span className="text-sm font-bold text-slate-900">{item.clienteName}</span>
+                                        {item.observaciones ? (
+                                            <span className="text-[11px] leading-tight text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100 self-start">
+                                                {item.observaciones}
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs text-slate-500">{item.clienteRecibe}</span>
+                                        )}
                                     </div>
                                 </td>
                                 <td className="px-8 py-5">

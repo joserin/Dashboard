@@ -5,12 +5,14 @@ export interface DeliveryData {
   clienteName: string; // Added for filtering/display
   clienteRecibe: string;
   status: 'Completado' | 'Pendiente' | 'Cancelado'; // Based on screenshot
+  observaciones: string;
   zonaOrigen: string;
   zonaDestino: string;
   tarifaClient: number;
   tarifaRider: number;
   timeRetiro: string;
   timeEntrega: string;
+  internalId: string;
 }
 
 export interface FinancialSplit {

@@ -67,12 +67,14 @@ export default function MotorizedManager() {
     // 1. Agrupamos usando la fecha ISO original para evitar colisiones y permitir ordenamiento
     const groups = filteredData.reduce((acc: any, item) => {
       if (item.status === 'Cancelado') return acc;
-      const rawDate = item.fecha; // Mantenemos el formato original (ISO) para la lógica
 
-      if (!acc[rawDate]) {
-        acc[rawDate] = {
-          date: rawDate,
-          displayDate: new Date(item.fecha).toLocaleDateString('es-ES', {
+      const rawDate = new Date(item.fecha);
+      const dateKey = rawDate.toISOString().split('T')[0];
+
+      if (!acc[dateKey]) {
+        acc[dateKey] = {
+          date: dateKey,
+          displayDate: rawDate.toLocaleDateString('es-ES', {
             day: '2-digit',
             month: 'short',
           }),
@@ -83,15 +85,15 @@ export default function MotorizedManager() {
         };
       }
       
-      acc[rawDate].montoAcumulado += item.tarifaRider || 0;
+      acc[dateKey].montoAcumulado += item.tarifaRider || 0;
 
       const retiro = timeToMinutes(item.timeRetiro);
       const entrega = timeToMinutes(item.timeEntrega);
       
       if (retiro > 0 && entrega > 0) {
-        acc[rawDate].sumaMinutosRetiro += retiro;
-        acc[rawDate].sumaMinutosEntrega += entrega;
-        acc[rawDate].cantidadPedidos++;
+        acc[dateKey].sumaMinutosRetiro += retiro;
+        acc[dateKey].sumaMinutosEntrega += entrega;
+        acc[dateKey].cantidadPedidos++;
       }
 
       return acc;
@@ -108,7 +110,8 @@ export default function MotorizedManager() {
         ? Math.round((g.sumaMinutosEntrega - g.sumaMinutosRetiro) / g.cantidadPedidos) : 0;
 
       return {
-        date: g.displayDate,     // Eje X de las gráficas
+        ...g,
+        date: g.date,     // Eje X de las gráficas
         tarifa: g.montoAcumulado, // Gráfica de Comisiones
         Tiempo: promedioMinutos,  // Gráfica de Tiempo Promedio
       };

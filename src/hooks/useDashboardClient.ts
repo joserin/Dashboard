@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { isWithinInterval, parseISO, startOfDay, endOfDay, parse, isValid } from 'date-fns';
 import type { DashboardStats, DeliveryData, DeliveryStatus } from '../env';
-import { getExcelVal, useExcelParser } from './useExcelParser';
+import { getExcelVal, useExcelParser, convertTo24h } from './useExcelParser';
 
 const formatExcelDate = (rawDate: any): string => {
   
@@ -41,18 +41,20 @@ export function useDashboardFilters() {
       await parseExcel(file, 'dashboard', (row, index) => {
               
         return {
+          internalId: `row-${index}-${Math.random().toString(36).slice(2)}`,
           fecha: formatExcelDate(getExcelVal(row, ['Fecha'])),
-          pedidoId: String(getExcelVal(row, ['Pedido']) || `#ORD-${10000 + index}`),
-          motorizadoName: String(getExcelVal(row, ['Motorizado']) || 'Desconocido'),
-          clienteName: String(getExcelVal(row, ['Cliente']) || 'Sin Cliente'),
-          clienteRecibe: String(getExcelVal(row, ['Receptor']) || 'Otros'),
-          zonaOrigen: String(getExcelVal(row, ['zona Origen']) || 'N/A'),
-          zonaDestino: String(getExcelVal(row, ['zona Destino']) || 'N/A'),
+          pedidoId: (String(getExcelVal(row, ['Pedido']) || `#ORD-${10000 + index}`)).trim(),
+          motorizadoName: (String(getExcelVal(row, ['Motorizado']) || 'Desconocido')).trim(),
+          clienteName: (String(getExcelVal(row, ['Cliente']) || 'Sin Cliente')).trim(),
+          clienteRecibe: (String(getExcelVal(row, ['Receptor']) || 'Otros')).trim(),
+          zonaOrigen: (String(getExcelVal(row, ['zona Origen']) || 'N/A')).trim(),
+          zonaDestino: (String(getExcelVal(row, ['zona Destino']) || 'N/A')).trim(),
           status: (getExcelVal(row, ['Estado']) || 'Completado') as DeliveryStatus,
+          observaciones: (String(getExcelVal(row, ['Observacion']) || '')).trim(),
           tarifaClient: Number(getExcelVal(row, ['Tarifa Cliente']) || 0),
           tarifaRider: Number(getExcelVal(row, ['Tarifa Moto']) || 0),
-          timeRetiro: String(getExcelVal(row, ['Retiro']) || '00:00:00'),
-          timeEntrega: String(getExcelVal(row, ['Entrega']) || '00:00:00'),
+          timeRetiro: convertTo24h(getExcelVal(row, ['Retiro']) || '00:00:00'),
+          timeEntrega: convertTo24h(getExcelVal(row, ['Entrega']) || '00:00:00'),
         };
       });
     } catch (err) {

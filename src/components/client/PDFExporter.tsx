@@ -88,6 +88,16 @@ const styles = StyleSheet.create({
   col3: { width: '15%', fontSize: 9 },
   col4: { width: '15%', fontSize: 9 },
   col5: { width: '10%', fontSize: 9, textAlign: 'right' },
+  tableCellGroup: {
+    flexDirection: 'column',
+    width: '40%', // coincide con col2
+  },
+  obsText: {
+    fontSize: 7,
+    color: '#dc2626', // Rojo para resaltar la observación
+    marginTop: 2,
+    fontStyle: 'italic',
+  },
   headerText: {
     fontWeight: 'bold',
     color: '#574237',
@@ -130,7 +140,9 @@ const MyPDFDocument: React.FC<PDFDocumentProps> = ({ data, stats, clientName, da
           <Text style={{ fontSize: 8, color: '#574237' }}>
             Periodo: {dateRange.start || 'N/A'} - {dateRange.end || 'N/A'}
           </Text>
-          {receptor && <Text style={{ fontSize: 8, color: '#574237' }}>Recibió: {receptor}</Text>}
+          {/*
+          receptor && <Text style={{ fontSize: 8, color: '#574237' }}>Recibió: {receptor}</Text>
+          */}
         </View>
       </View>
 
@@ -162,9 +174,15 @@ const MyPDFDocument: React.FC<PDFDocumentProps> = ({ data, stats, clientName, da
           <Text style={[styles.col5, styles.headerText]}>Monto</Text>
         </View>
         {data.slice(0, 50).map((item) => (
-          <View key={item.pedidoId} style={styles.tableRow}>
+          <View key={item.internalId} style={styles.tableRow}>
             <Text style={[styles.col1, { color: '#9a4600', fontWeight: 'bold' }]}>{item.pedidoId}</Text>
-            <Text style={styles.col2}>{item.clienteName}</Text>
+            {/*<Text style={styles.col2}>{item.clienteName}</Text>*/}
+            <View style={styles.tableCellGroup}>
+              <Text style={{ fontSize: 9 }}>{item.clienteName}</Text>
+              {item.observaciones ? (
+                <Text style={styles.obsText}>Obs: {item.observaciones}</Text>
+              ) : <Text style={styles.obsText}>Rec: {item.clienteRecibe}</Text>}
+            </View>
             <Text style={styles.col3}>{item.status}</Text>
             <Text style={styles.col4}>{new Date(item.fecha).toLocaleDateString()}</Text>
             <Text style={[styles.col5, { fontWeight: 'bold' }]}>${item.tarifaClient.toFixed(2)}</Text>
@@ -173,7 +191,7 @@ const MyPDFDocument: React.FC<PDFDocumentProps> = ({ data, stats, clientName, da
       </View>
 
       {chartImage && (
-        <View>
+        <View break>
           <Text style={styles.sectionTitle}>Análisis de Tendencias</Text>
           <Image src={chartImage} style={styles.chartImage} />
         </View>

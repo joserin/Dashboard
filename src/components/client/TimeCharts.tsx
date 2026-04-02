@@ -62,6 +62,9 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
             stroke: #f43f5e !important;
             stroke-width: 3px;
             }
+            .recharts-cartesian-axis-tick text {
+                font-size: 10px; /* Ajusta este valor a 8px o 9px si lo quieres más pequeño */
+            }
         `}} />
     
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -73,22 +76,21 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
                     <Badge color="red">En tiempo real</Badge>
                 </Flex>
             </div>
-            
-            
-            <AreaChart
+
+            <BarChart
                 className="h-72 mt-4"
                 data={data}
                 index="displayDate"
-                categories={['Completas', 'Pendientes']}
-                colors={['orange', 'blue']}
+                stack={true}
+                categories={["Pendientes", "Completas"]}
+                colors={['green', 'blue']}
                 valueFormatter={valueFormatter}
                 showLegend={true}
                 showGridLines={true}
-                curveType="monotone"
                 allowDecimals={false}
-                startEndOnly={true}
                 customTooltip={MiCuadroPersonalizado}
             />
+            
         </Card>
         {/* Gráfico 2: Montos Económicos */}
         <Card className="ring-1 ring-slate-200 shadow-sm">
@@ -105,7 +107,7 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
                 data={data}
                 index="displayDate"
                 categories={['Monto']} // Necesitas asegurarte que el useMemo del Manager envíe este campo
-                colors={['green']}
+                colors={['indigo']}
                 valueFormatter={currencyFormatter}
                 showLegend={false}
                 allowDecimals={true}
@@ -124,17 +126,21 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
                     <Badge color="red">Horas</Badge>
                 </Flex>
             </div>
-            
-            <BarChart
+
+            <AreaChart
                 className="h-72 mt-4"
                 data={data}
                 index="displayDate"
-                categories={['Tiempo']} // Este es el promedio de duración
+                categories={['Tiempo']}
                 colors={['orange']}
                 valueFormatter={(number) => `${number} m`}
                 showLegend={true}
-                yAxisWidth={60}
+                showGridLines={true}
+                startEndOnly={false}
+                curveType="monotone"
+                tickGap={0}
                 customTooltip={MiCuadroPersonalizado}
+                intervalType="preserveStartEnd"
             />
         </Card>
 
@@ -152,12 +158,13 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
                 data={data}
                 index="displayDate"
                 categories={['Retiro', 'Entrega']}
-                colors={['indigo', 'rose', 'amber']}
+                colors={['indigo', 'amber']}
                 valueFormatter={clockFormatter}
                 showLegend={true}
                 curveType="monotone"
-                yAxisWidth={60}
-                startEndOnly={true}
+                tickGap={0}
+                startEndOnly={false}
+                intervalType="preserveStartEnd"
             />
         </Card>
 
