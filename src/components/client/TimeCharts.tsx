@@ -59,7 +59,7 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
             /* Línea de Entrega (Rose) */
             .recharts-line-curve[name="Entrega"],
             .recharts-line-curve[name="Prom. Entrega"] {
-            stroke: #f43f5e !important;
+            stroke: #e2943a !important;
             stroke-width: 3px;
             }
             .recharts-cartesian-axis-tick text {
@@ -96,7 +96,7 @@ export const TimeCharts: React.FC<TimeChartsProps> = ({ data }) => {
         <Card className="ring-1 ring-slate-200 shadow-sm">
             <div className="mb-4">
                 <Flex justifyContent="between" alignItems="center">
-                    <Title className="text-slate-900 font-bold">Ingresos por Día</Title>
+                    <Title className="text-slate-900 font-bold">Monto por Día</Title>
                     <Badge color="emerald">Financiero</Badge>
                 </Flex>
                 <Text className="text-slate-500 text-xs text-left">Monto total facturado</Text>
