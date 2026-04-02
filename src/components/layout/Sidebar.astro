@@ -1,4 +1,6 @@
 ---
+import logo from '../../assets/logo.svg';
+
 const menuItems = [
   { url: '/', label: 'Inicio', active: true },
   { url: '/client', label: 'Clientes', active: false },
@@ -6,16 +8,19 @@ const menuItems = [
 ];
 ---
 
-<aside class=" w-full md:w-64 bg-white border-r border-slate-200/50 z-50 flex flex-col">
+<aside class=" w-full md:w-64 shrink-0 bg-black/5 border-r border-slate-200/50 z-50 flex flex-col">
   <div class="p-4 flex md:flex-col items-center gap-5">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xl">M</div>
-      <span class="text-2xl font-black text-slate-900 tracking-tighter">Visor</span>
+    <div class="flex items-center gap-3 w-1/2 md:w-full">
+      <picture>
+        <img src={logo.src} alt="Visor Logo" class="w-8 h-8" />
+      </picture>
+     <span class="text-2xl font-black tracking-wider">Mobile</span>
     </div>
 
-    <nav class="space-y-2 flex md:flex-col gap-5">
+    <nav class="flex md:flex-col gap-5 justify-between items-center w-full">
       {menuItems.map((Item) => (
-        <a href={Item.url} class="w-full flex items-center gap-3 px-1 py-2 rounded-xl text-sm font-bold transition-all text-slate-600 hover:bg-slate-50">
+        <a href={Item.url} class="w-full flex items-center px-1 py-2 rounded-xl text-sm 
+          font-bold transition-all text-slate-600 hover:bg-yellow-100">
           {Item.label}
         </a>
       ))}

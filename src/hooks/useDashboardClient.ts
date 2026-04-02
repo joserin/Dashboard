@@ -4,13 +4,14 @@ import type { DashboardStats, DeliveryData, DeliveryStatus } from '../env';
 import { getExcelVal, useExcelParser } from './useExcelParser';
 
 const formatExcelDate = (rawDate: any): string => {
+  
   let formattedDate = new Date();
   if (!rawDate) return formattedDate.toISOString();
 
   if (!isNaN(Number(rawDate)) && typeof rawDate !== 'string') {
     formattedDate = startOfDay(new Date((Number(rawDate) - 25569) * 86400 * 1000));
   } else {
-    const dateStr = String(rawDate).trim();
+    const dateStr = String(rawDate).trim().replace(/-/g, '/');
     const attempt = parse(dateStr, 'dd/MM/yyyy', new Date());
     if (isValid(attempt)) {
       formattedDate = attempt;
@@ -20,10 +21,11 @@ const formatExcelDate = (rawDate: any): string => {
     }
   }
   return formattedDate.toISOString();
+
 };
 
 export function useDashboardFilters() {
-  const { data, parseExcel, isLoading, error } = useExcelParser<DeliveryData>();
+  const { data, parseExcel, isLoading, error, setData } = useExcelParser<DeliveryData>();
   const [selectedClient, setSelectedClient] = useState<string>('Todos');
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
     start: '',
@@ -31,6 +33,11 @@ export function useDashboardFilters() {
   });
 
   const handleFileUpload = async (file: File) => {
+
+    try {
+      setData([]); 
+      setSelectedClient('Todos')
+
       await parseExcel(file, 'dashboard', (row, index) => {
               
         return {
@@ -48,7 +55,10 @@ export function useDashboardFilters() {
           timeEntrega: String(getExcelVal(row, ['Entrega']) || '00:00:00'),
         };
       });
-    };
+    } catch (err) {
+      alert("Error al subir archivo:");
+    }
+  };
 
   const clients = useMemo(() => {
     const uniqueClients = Array.from(new Set(data.map((d) => d.clienteName)));

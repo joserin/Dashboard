@@ -24,7 +24,7 @@ const formatExcelDate = (rawDate: any): string => {
 
 export function useDashboardDelivery() {
 
-  const { data, parseExcel, isLoading, error } = useExcelParser<DeliveryData>();
+  const { data, parseExcel, isLoading, error, setData } = useExcelParser<DeliveryData>();
   const [selectedMotorizado, setSelectedMotorizado] = useState<string>('Todos');
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
     start: '',
@@ -32,23 +32,31 @@ export function useDashboardDelivery() {
   });
  
   const handleFileUpload = async (file: File) => {
-    await parseExcel(file, 'dashboard', (row, index) => {
-            
-      return {
-        fecha: formatExcelDate(getExcelVal(row, ['Fecha'])),
-        pedidoId: String(getExcelVal(row, ['Pedido']) || `#ORD-${10000 + index}`),
-        motorizadoName: String(getExcelVal(row, ['Motorizado']) || 'Desconocido'),
-        clienteName: String(getExcelVal(row, ['Cliente']) || 'Sin Cliente'),
-        clienteRecibe: String(getExcelVal(row, ['Receptor']) || 'Otros'),
-        zonaOrigen: String(getExcelVal(row, ['zona Origen']) || 'N/A'),
-        zonaDestino: String(getExcelVal(row, ['zona Destino']) || 'N/A'),
-        status: (getExcelVal(row, ['Estado']) || 'Completado') as DeliveryStatus,
-        tarifaClient: Number(getExcelVal(row, ['Tarifa Cliente']) || 0),
-        tarifaRider: Number(getExcelVal(row, ['Tarifa Moto']) || 0),
-        timeRetiro: String(getExcelVal(row, ['Retiro']) || '00:00:00'),
-        timeEntrega: String(getExcelVal(row, ['Entrega']) || '00:00:00'),
-      };
-    });
+    try {
+      setData([]); 
+      setSelectedMotorizado('Todos')
+
+      await parseExcel(file, 'dashboard', (row, index) => {
+              
+        return {
+          fecha: formatExcelDate(getExcelVal(row, ['Fecha'])),
+          pedidoId: String(getExcelVal(row, ['Pedido']) || `#ORD-${10000 + index}`),
+          motorizadoName: String(getExcelVal(row, ['Motorizado']) || 'Desconocido'),
+          clienteName: String(getExcelVal(row, ['Cliente']) || 'Sin Cliente'),
+          clienteRecibe: String(getExcelVal(row, ['Receptor']) || 'Otros'),
+          zonaOrigen: String(getExcelVal(row, ['zona Origen']) || 'N/A'),
+          zonaDestino: String(getExcelVal(row, ['zona Destino']) || 'N/A'),
+          status: (getExcelVal(row, ['Estado']) || 'Completado') as DeliveryStatus,
+          tarifaClient: Number(getExcelVal(row, ['Tarifa Cliente']) || 0),
+          tarifaRider: Number(getExcelVal(row, ['Tarifa Moto']) || 0),
+          timeRetiro: String(getExcelVal(row, ['Retiro']) || '00:00:00'),
+          timeEntrega: String(getExcelVal(row, ['Entrega']) || '00:00:00'),
+        };
+      });
+      
+    } catch (err) {
+      alert("Error al subir archivo:");
+    }
   };
 
   const filteredData = useMemo(() => {

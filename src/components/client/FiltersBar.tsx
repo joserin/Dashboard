@@ -18,8 +18,8 @@ export const FiltersBar: React.FC<FiltersBarProps> = ({
   onRefresh = () => {},
 }) => {
   return (
-    <div className="glass-panel p-2 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4 cloud-shadow 
-        border-b-2 border-outline-variant/10 ">
+    <div className="sticky top-20 z-30 bg-white/70 backdrop-blur-xl p-1 md:flex-row 
+      justify-between items-center rounded-xl shadow-sm border border-slate-200/50 flex flex-col gap-3">
         <section className="flex items-center gap-3">
             <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider ml-1">Cliente</label>
             <select 

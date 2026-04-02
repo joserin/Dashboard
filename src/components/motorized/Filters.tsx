@@ -9,8 +9,8 @@ interface FiltersProps {
 
 export function Filters({ motorizados, selectedMotorizado, onMotorizadoChange, dateRange, onDateRangeChange }: FiltersProps) {
   return (
-    <div className="sticky top-20 z-30 bg-white/70 backdrop-blur-xl p-1 md:flex-row justify-between items-center
-      rounded-xl shadow-sm border border-slate-200/50 flex flex-col gap-3">
+    <div className="sticky top-20 z-30 bg-white/70 backdrop-blur-xl p-1 md:flex-row 
+      justify-between items-center rounded-xl shadow-sm border border-slate-200/50 flex flex-col gap-3">
       <section className="flex items-center gap-3">
         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1 flex items-center gap-1">
           Motorizado
