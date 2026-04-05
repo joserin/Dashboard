@@ -83,14 +83,14 @@ const styles = StyleSheet.create({
     padding: 8,
     alignItems: 'center',
   },
-  col1: { width: '20%', fontSize: 9 },
-  col2: { width: '40%', fontSize: 9 },
+  col1: { width: '30%', fontSize: 9 },
+  col2: { width: '30%', fontSize: 7 },
   col3: { width: '15%', fontSize: 9 },
   col4: { width: '15%', fontSize: 9 },
   col5: { width: '10%', fontSize: 9, textAlign: 'right' },
   tableCellGroup: {
     flexDirection: 'column',
-    width: '40%', // coincide con col2
+    width: '30%', // coincide con col2
   },
   obsText: {
     fontSize: 7,
@@ -167,24 +167,23 @@ const MyPDFDocument: React.FC<PDFDocumentProps> = ({ data, stats, clientName, da
 
       <View style={styles.table}>
         <View style={styles.tableHeader}>
-          <Text style={[styles.col1, styles.headerText]}>Pedido ID</Text>
-          <Text style={[styles.col2, styles.headerText]}>Cliente/Detalle</Text>
-          <Text style={[styles.col3, styles.headerText]}>Estado</Text>
           <Text style={[styles.col4, styles.headerText]}>Fecha</Text>
+          <Text style={[styles.col1, styles.headerText]}>Cliente/Detalle</Text>
+          <Text style={[styles.col2, styles.headerText]}>Zona</Text>
+          <Text style={[styles.col3, styles.headerText]}>Estado</Text>
           <Text style={[styles.col5, styles.headerText]}>Monto</Text>
         </View>
         {data.slice(0, 50).map((item) => (
-          <View key={item.internalId} style={styles.tableRow}>
-            <Text style={[styles.col1, { color: '#9a4600', fontWeight: 'bold' }]}>{item.pedidoId}</Text>
-            {/*<Text style={styles.col2}>{item.clienteName}</Text>*/}
+          <View key={item.internalId} style={styles.tableRow} wrap={false}>
+            <Text style={styles.col4}>{new Date(item.fecha).toLocaleDateString()}</Text>
             <View style={styles.tableCellGroup}>
               <Text style={{ fontSize: 9 }}>{item.clienteName}</Text>
               {item.observaciones ? (
                 <Text style={styles.obsText}>Obs: {item.observaciones}</Text>
               ) : <Text style={styles.obsText}>Rec: {item.clienteRecibe}</Text>}
             </View>
+            <Text style={styles.col2}>{`${item.zonaOrigen} -> ${item.zonaDestino}`}</Text>
             <Text style={styles.col3}>{item.status}</Text>
-            <Text style={styles.col4}>{new Date(item.fecha).toLocaleDateString()}</Text>
             <Text style={[styles.col5, { fontWeight: 'bold' }]}>${item.tarifaClient.toFixed(2)}</Text>
           </View>
         ))}

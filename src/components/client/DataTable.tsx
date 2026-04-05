@@ -41,8 +41,8 @@ export const DataTable: React.FC<DataTableProps> = ({ data = [] }) => {
             <table className="w-full text-left border-collapse">
                 <thead>
                     <tr className="bg-surface-container-low">
-                        <th className="px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Pedido ID</th>
                         <th className="px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Cliente/Detalle</th>
+                        <th className="px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Zona</th>
                         <th className="px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Estado</th>
                         <th className="px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Fecha</th>
                         <th className="px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider text-right">Monto</th>
@@ -61,7 +61,6 @@ export const DataTable: React.FC<DataTableProps> = ({ data = [] }) => {
 
                         return (
                             <tr key={item.internalId} className={rowClass}>
-                                <td className="px-8 py-5 font-mono text-xs text-blue-600 font-bold">{item.pedidoId}</td>
                                 <td className="px-8 py-5">
                                     <div className="flex flex-col">
                                         <span className="text-sm font-bold text-slate-900">{item.clienteName}</span>
@@ -72,6 +71,17 @@ export const DataTable: React.FC<DataTableProps> = ({ data = [] }) => {
                                         ) : (
                                             <span className="text-xs text-slate-500">{item.clienteRecibe}</span>
                                         )}
+                                    </div>
+                                </td>
+                                <td className="px-4 py-2">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 rounded text-slate-700 border border-slate-200">
+                                            {item.zonaOrigen}
+                                        </span>
+                                        <span className="text-slate-300 text-xs">→</span>
+                                        <span className="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 rounded text-slate-700 border border-slate-200">
+                                            {item.zonaDestino}
+                                        </span>
                                     </div>
                                 </td>
                                 <td className="px-8 py-5">

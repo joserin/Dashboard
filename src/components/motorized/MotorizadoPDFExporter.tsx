@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   // Columnas proporcionales
-  colFecha: { width: '25%', fontSize: 8 },
+  colFecha: { width: '15%', fontSize: 8 },
   colId: { width: '15%', fontSize: 8 },
   colZonas: { width: '35%', fontSize: 8 },
   colEstado: { width: '15%', fontSize: 8 },
@@ -173,10 +173,8 @@ const MotorizadoDocument: React.FC<PDFDocumentProps> = ({ data, stats, motorizad
                 </View>
 
                 {data.map((item) => (
-                <View key={item.internalId} style={styles.tableRow}>
-                    <Text style={styles.colFecha}>
-                    {new Date(item.fecha).toLocaleString('es-ES', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </Text>
+                <View key={item.internalId} style={styles.tableRow} wrap={false}>
+                    <Text style={styles.colFecha}>{new Date(item.fecha).toLocaleDateString()}</Text>
                     <Text style={[styles.colId, { color: '#9a4600' }]}>{item.pedidoId}</Text>
                     <Text style={styles.colZonas}>{`${item.zonaOrigen} -> ${item.zonaDestino}`}</Text>
                     <Text style={styles.colEstado}>{item.status}</Text>
