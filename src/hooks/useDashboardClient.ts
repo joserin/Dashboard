@@ -1,27 +1,32 @@
 import { useState, useCallback, useMemo } from 'react';
-import { isWithinInterval, parseISO, startOfDay, endOfDay, parse, isValid } from 'date-fns';
+import { isWithinInterval, parseISO, startOfDay, endOfDay} from 'date-fns';
 import type { DashboardStats, DeliveryData, DeliveryStatus } from '../env';
 import { getExcelVal, useExcelParser, convertTo24h } from './useExcelParser';
 
 const formatExcelDate = (rawDate: any): string => {
-  
-  let formattedDate = new Date();
-  if (!rawDate) return formattedDate.toISOString();
+  if (!rawDate) return new Date().toISOString();
 
-  if (!isNaN(Number(rawDate)) && typeof rawDate !== 'string') {
-    formattedDate = startOfDay(new Date((Number(rawDate) - 25569) * 86400 * 1000));
+  let d: number, m: number, y: number;
+
+  if (typeof rawDate === 'number') {
+    // Caso: Número de serie de Excel
+    const date = new Date((rawDate - 25569) * 86400 * 1000);
+    d = date.getUTCDate();
+    m = date.getUTCMonth();
+    y = date.getUTCFullYear();
   } else {
-    const dateStr = String(rawDate).trim().replace(/-/g, '/');
-    const attempt = parse(dateStr, 'dd/MM/yyyy', new Date());
-    if (isValid(attempt)) {
-      formattedDate = attempt;
-    } else {
-      const fallback = new Date(dateStr);
-      if (isValid(fallback)) formattedDate = fallback;
-    }
+    // Caso: String "1/4/2026" o "26/03/2026"
+    const parts = String(rawDate).trim().split(/[/|-]/);
+    if (parts.length !== 3) return new Date().toISOString();
+    
+    d = parseInt(parts[0]);
+    m = parseInt(parts[1]) - 1;
+    y = parseInt(parts[2]);
+    
+    if (y < 100) y += 2000;
   }
-  return formattedDate.toISOString();
-
+  const finalDate = new Date(y, m, d, 12, 0, 0);
+  return finalDate.toISOString();
 };
 
 export function useDashboardFilters() {
@@ -67,26 +72,34 @@ export function useDashboardFilters() {
     return ['Todos', ...uniqueClients];
   }, [data]);
 
+  
   const filteredData = useMemo(() => {
     return data.filter((item) => {
+      // 1. Filtro de Cliente
       const matchesClient = selectedClient === 'Todos' || item.clienteName === selectedClient;
-      
+
+      // 2. Filtro de Fecha con protección
       let matchesDate = true;
+
       if (dateRange.start && dateRange.end) {
+        // Extraemos año, mes, día manualmente del input (YYYY-MM-DD)
+        const [startY, startM, startD] = dateRange.start.split('-').map(Number);
+        const [endY, endM, endD] = dateRange.end.split('-').map(Number);
+        
+        // Creamos límites a medianoche local
+        const startLimit = new Date(startY, startM - 1, startD, 0, 0, 0).getTime();
+        const endLimit = new Date(endY, endM - 1, endD, 23, 59, 59).getTime();
 
-        const itemDate = new Date(item.fecha);
-        const startDate = startOfDay(parseISO(dateRange.start));
-        const endDate = endOfDay(parseISO(dateRange.end));
+        // Convertimos la fecha del item (que viene de formatExcelDate como ISO)
+        const d = new Date(item.fecha);
+        const itemTime = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0).getTime();
 
-        matchesDate = isWithinInterval(itemDate, {
-          start: startDate,
-          end: endDate,
-        });
+        matchesDate = itemTime >= startLimit && itemTime <= endLimit;
       }
-      
+
       return matchesClient && matchesDate;
     });
-  }, [data, selectedClient, dateRange]);
+  }, [data, dateRange, selectedClient]);
 
   const stats = useMemo((): DashboardStats => {
 
