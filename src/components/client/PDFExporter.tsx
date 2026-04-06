@@ -173,7 +173,7 @@ const MyPDFDocument: React.FC<PDFDocumentProps> = ({ data, stats, clientName, da
           <Text style={[styles.col3, styles.headerText]}>Estado</Text>
           <Text style={[styles.col5, styles.headerText]}>Monto</Text>
         </View>
-        {data.slice(0, 50).map((item) => (
+        {data.map((item) => (
           <View key={item.internalId} style={styles.tableRow} wrap={false}>
             <Text style={styles.col4}>{new Date(item.fecha).toLocaleDateString()}</Text>
             <View style={styles.tableCellGroup}>
